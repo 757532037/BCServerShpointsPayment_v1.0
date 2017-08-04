@@ -1,0 +1,39 @@
+<project name="BCServerShpointsPayment" default="run" xmlns:ivy="antlib:fr.jayasoft.ivy.ant">
+
+	<property name="app.version" value="1.0.0" />
+	<!-- target: run -->
+	<target name="run" depends="build" description="--> compile and run the project">
+		
+		<property name="prop_file" value="bc_server_shpointspay_beans.xml"/>
+		<java  classname="bc.core.server.Main"  fork='true'>
+			
+				<classpath>
+					  	          <path refid="run.path.id"/>
+								  <pathelement location="${config.dir}"/>
+					  	         
+				</classpath>
+				
+			
+			<arg value="-init"/>
+			<arg value="${prop_file}"/>
+			
+			<jvmarg value="-Xms128M"/>   
+			<jvmarg value="-Xmx512M"/>
+			
+		</java>
+		
+		
+	</target>
+	
+	<target name="dist" depends="build" description="--> compile and run the project">
+	                <mkdir dir="${dist.dir}"/>
+	                  <jar jarfile="${dist.dir}/BCServerShpointsPayment.jar" >
+	                   <fileset dir="${build.dir}">
+	                    <exclude name="**/*Test*" />
+	                   </fileset>
+	                  </jar>
+	  </target>
+
+	<import file="../build_scripts/build_common.xml" />
+
+</project>

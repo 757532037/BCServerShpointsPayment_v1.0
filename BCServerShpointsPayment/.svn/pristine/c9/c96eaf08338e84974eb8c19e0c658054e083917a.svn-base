@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<simple8583-config>
+
+	<!-- 长度全部都是字节数（由自己换算,LLVAR,LLLVAR,LLVAR_NUMERIC等变长数据域定义的长度无效） -->
+	
+	<!-- 统一头，每次不管请求还是响应都包含的共同内容 -->
+    <header>
+<!--         <field id="MsgLength" type="NUMERIC" length="2"/> -->
+        <field id="mti" type="CHAR" length="4"/>
+<!--         <field id="tpdu" type="NUMERIC" length="5"/> -->
+<!--         <field id="VersionNo" type="NUMERIC" length="2"/> -->
+        <field id="BitMap" type="BINARY" length="16"/>
+    </header>
+
+<!--上海银行积分POS-START-->
+<!-- 积分余额查询-start 48接收返回-->
+   <package mti="0320"><!-- snd -->
+        <field id="2" type="LLVAR"/>
+        <field id="3" type="CHAR" length="6"/>
+        <field id="4" type="CHAR" length="12" />
+        <field id="7" type="CHAR" length="10" />
+        <field id="11" type="CHAR" length="6" />
+        <field id="12" type="CHAR" length="6" />
+        <field id="13" type="CHAR" length="4" />
+        <field id="15" type="CHAR" length="4" />
+        <field id="22" type="CHAR" length="3"/>
+        <field id="25" type="CHAR" length="2"/>
+        <field id="32" type="LLVAR"/>
+        <field id="37" type="CHAR" length="12"/>
+        <field id="38" type="CHAR" length="6"/>
+        <field id="39" type="CHAR" length="2"/>
+        <field id="41" type="CHAR" length="8" />
+        <field id="42" type="CHAR" length="15" />
+        <field id="43" type="CHAR" length="40" />
+        <field id="48" type="LLLVAR"/>
+        <field id="49" type="CHAR" length="3" />
+    </package>
+    <package mti="0330"><!-- rcv -->
+        <field id="2" type="LLVAR" />
+        <field id="3" type="CHAR" length="6"/>
+        <field id="4" type="CHAR" length="12" />
+        <field id="7" type="CHAR" length="10" />
+        <field id="11" type="CHAR" length="6" />
+        <field id="12" type="CHAR" length="6" />
+        <field id="13" type="CHAR" length="4" />
+        <field id="15" type="CHAR" length="4" />
+        <field id="22" type="CHAR" length="3"/>
+        <field id="25" type="CHAR" length="2"/>
+<!--         length="11" -->
+        <field id="32" type="LLVAR"/>
+        <field id="37" type="CHAR" length="12"/>
+        <field id="38" type="CHAR" length="6"/>
+        <field id="39" type="CHAR" length="2"/>
+        <field id="41" type="CHAR" length="8" />
+        <field id="42" type="CHAR" length="15" />
+        <field id="43" type="CHAR" length="40" />
+<!--         length="40"  接收消息返回域-->
+        <field id="48" type="LLLVAR"/>
+        <field id="49" type="CHAR" length="3" />
+    </package>
+<!-- 积分余额查询-end -->   
+<!-- 积分兑换-start 48接收返回-->         
+  	<package mti="0240">
+        <field id="2" type="LLVAR" />
+        <field id="3" type="CHAR" length="6"/>
+        <field id="4" type="CHAR" length="12" />
+        <field id="7" type="CHAR" length="10" />
+        <field id="11" type="CHAR" length="6" />
+        <field id="12" type="CHAR" length="6" />
+        <field id="13" type="CHAR" length="4" />
+        <field id="15" type="CHAR" length="4" />
+        <field id="22" type="CHAR" length="3"/>
+        <field id="25" type="CHAR" length="2"/>
+        <field id="32" type="LLVAR"/>
+        <field id="37" type="CHAR" length="12"/>
+        <field id="38" type="CHAR" length="6"/>
+        <field id="39" type="CHAR" length="2"/>
+        <field id="41" type="CHAR" length="8" />
+        <field id="42" type="CHAR" length="15" />
+        <field id="43" type="CHAR" length="40" />
+        <field id="48" type="LLLVAR"/>
+        <field id="49" type="CHAR" length="3" />
+    </package>
+    <package mti="0250">
+        <field id="2" type="LLVAR" />
+        <field id="3" type="CHAR" length="6"/>
+        <field id="4" type="CHAR" length="12" />
+        <field id="7" type="CHAR" length="10" />
+        <field id="11" type="CHAR" length="6" />
+        <field id="12" type="CHAR" length="6" />
+        <field id="13" type="CHAR" length="4" />
+        <field id="15" type="CHAR" length="4" />
+        <field id="22" type="CHAR" length="3"/>
+        <field id="25" type="CHAR" length="2"/>
+        <field id="32" type="LLVAR"/>
+        <field id="37" type="CHAR" length="12"/>
+        <field id="38" type="CHAR" length="6"/>
+        <field id="39" type="CHAR" length="2"/>
+        <field id="41" type="CHAR" length="8" />
+        <field id="42" type="CHAR" length="15" />
+        <field id="43" type="CHAR" length="40" />
+        <field id="48" type="LLLVAR"/>
+        <field id="49" type="CHAR" length="3" />
+    </package>
+<!-- 积分兑换-end -->
+<!-- 积分退货-start 48接收返回-->         
+  	<package mti="0340">
+        <field id="2" type="LLVAR" />
+        <field id="3" type="CHAR" length="6"/>
+        <field id="4" type="CHAR" length="12" />
+        <field id="7" type="CHAR" length="10" />
+        <field id="11" type="CHAR" length="6" />
+        <field id="12" type="CHAR" length="6" />
+        <field id="13" type="CHAR" length="4" />
+        <field id="15" type="CHAR" length="4" />
+        <field id="22" type="CHAR" length="3"/>
+        <field id="25" type="CHAR" length="2"/>
+        <field id="32" type="LLVAR"/>
+        <field id="37" type="CHAR" length="12"/>
+        <field id="39" type="CHAR" length="2"/>
+        <field id="41" type="CHAR" length="8" />
+        <field id="42" type="CHAR" length="15" />
+        <field id="43" type="CHAR" length="40" />
+        <field id="48" type="LLLVAR"/>
+        <field id="49" type="CHAR" length="3" />
+    </package>
+    <package mti="0350">
+        <field id="2" type="LLVAR" />
+        <field id="3" type="CHAR" length="6"/>
+        <field id="4" type="CHAR" length="12" />
+        <field id="7" type="CHAR" length="10" />
+        <field id="11" type="CHAR" length="6" />
+        <field id="12" type="CHAR" length="6" />
+        <field id="13" type="CHAR" length="4" />
+        <field id="15" type="CHAR" length="4" />
+        <field id="22" type="CHAR" length="3"/>
+        <field id="25" type="CHAR" length="2"/>
+        <field id="32" type="LLVAR"/>
+        <field id="37" type="CHAR" length="12"/>
+        <field id="39" type="CHAR" length="2"/>
+        <field id="41" type="CHAR" length="8" />
+        <field id="42" type="CHAR" length="15" />
+        <field id="43" type="CHAR" length="40" />
+        <field id="48" type="LLLVAR"/>
+        <field id="49" type="CHAR" length="3" />
+    </package>
+<!-- 积分退货-end -->
+<!-- 积分兑奖撤销-start 48接收返回-->         
+  	<package mti="0260">
+        <field id="2" type="LLVAR" />
+        <field id="3" type="CHAR" length="6"/>
+        <field id="4" type="CHAR" length="12" />
+        <field id="7" type="CHAR" length="10" />
+        <field id="11" type="CHAR" length="6" />
+        <field id="12" type="CHAR" length="6" />
+        <field id="13" type="CHAR" length="4" />
+        <field id="15" type="CHAR" length="4" />
+        <field id="22" type="CHAR" length="3"/>
+        <field id="25" type="CHAR" length="2"/>
+        <field id="32" type="LLVAR"/>
+        <field id="37" type="CHAR" length="12"/>
+        <field id="38" type="CHAR" length="6"/>
+        <field id="39" type="CHAR" length="2"/>
+        <field id="41" type="CHAR" length="8" />
+        <field id="42" type="CHAR" length="15" />
+        <field id="43" type="CHAR" length="40" />
+        <field id="48" type="LLLVAR"/>
+        <field id="49" type="CHAR" length="3" />
+    </package>
+    <package mti="0270">
+        <field id="2" type="LLVAR" />
+        <field id="3" type="CHAR" length="6"/>
+        <field id="4" type="CHAR" length="12" />
+        <field id="7" type="CHAR" length="10" />
+        <field id="11" type="CHAR" length="6" />
+        <field id="12" type="CHAR" length="6" />
+        <field id="13" type="CHAR" length="4" />
+        <field id="15" type="CHAR" length="4" />
+        <field id="22" type="CHAR" length="3"/>
+        <field id="25" type="CHAR" length="2"/>
+        <field id="32" type="LLVAR"/>
+        <field id="37" type="CHAR" length="12"/>
+        <field id="38" type="CHAR" length="6"/>
+        <field id="39" type="CHAR" length="2"/>
+        <field id="41" type="CHAR" length="8" />
+        <field id="42" type="CHAR" length="15" />
+        <field id="43" type="CHAR" length="40" />
+        <field id="48" type="LLLVAR"/>
+        <field id="49" type="CHAR" length="3" />
+    </package>
+<!-- 积分兑奖撤销-end -->
+<!-- 积分兑奖冲正冲正-start 48接收返回-->         
+  	<package mti="0280">
+        <field id="2" type="LLVAR" />
+        <field id="3" type="CHAR" length="6"/>
+        <field id="4" type="CHAR" length="12" />
+        <field id="7" type="CHAR" length="10" />
+        <field id="11" type="CHAR" length="6" />
+        <field id="12" type="CHAR" length="6" />
+        <field id="13" type="CHAR" length="4" />
+        <field id="15" type="CHAR" length="4" />
+        <field id="22" type="CHAR" length="3"/>
+        <field id="25" type="CHAR" length="2"/>
+        <field id="32" type="LLVAR"/>
+        <field id="33" type="LLVAR"/>
+        <field id="37" type="CHAR" length="12"/>
+        <field id="38" type="CHAR" length="6"/>
+        <field id="39" type="CHAR" length="2"/>
+        <field id="41" type="CHAR" length="8" />
+        <field id="42" type="CHAR" length="15" />
+        <field id="43" type="CHAR" length="40" />
+        <field id="48" type="LLLVAR"/>
+        <field id="49" type="CHAR" length="3" />
+        <field id="90" type="CHAR" length="42" />
+    </package>
+    <package mti="0290">
+        <field id="2" type="LLVAR" />
+        <field id="3" type="CHAR" length="6"/>
+        <field id="4" type="CHAR" length="12" />
+        <field id="7" type="CHAR" length="10" />
+        <field id="11" type="CHAR" length="6" />
+        <field id="12" type="CHAR" length="6" />
+        <field id="13" type="CHAR" length="4" />
+        <field id="15" type="CHAR" length="4" />
+        <field id="22" type="CHAR" length="3"/>
+        <field id="25" type="CHAR" length="2"/>
+        <field id="32" type="LLVAR"/>
+        <field id="33" type="LLVAR"/>
+        <field id="37" type="CHAR" length="12"/>
+        <field id="38" type="CHAR" length="6"/>
+        <field id="39" type="CHAR" length="2"/>
+        <field id="41" type="CHAR" length="8" />
+        <field id="42" type="CHAR" length="15" />
+        <field id="43" type="CHAR" length="40" />
+        <field id="48" type="LLLVAR"/>
+        <field id="49" type="CHAR" length="3" />
+        <field id="90" type="CHAR" length="42" />
+    </package>
+<!-- 积分兑奖冲正冲正-end -->
+<!-- 积分兑奖撤销冲正-start 48接收返回-->         
+  	<package mti="0300">
+        <field id="2" type="LLVAR" />
+        <field id="3" type="CHAR" length="6"/>
+        <field id="4" type="CHAR" length="12" />
+        <field id="7" type="CHAR" length="10" />
+        <field id="11" type="CHAR" length="6" />
+        <field id="12" type="CHAR" length="6" />
+        <field id="13" type="CHAR" length="4" />
+        <field id="15" type="CHAR" length="4" />
+        <field id="22" type="CHAR" length="3"/>
+        <field id="25" type="CHAR" length="2"/>
+        <field id="32" type="LLVAR"/>
+        <field id="33" type="LLVAR"/>
+        <field id="37" type="CHAR" length="12"/>
+        <field id="38" type="CHAR" length="6"/>
+        <field id="39" type="CHAR" length="2"/>
+        <field id="41" type="CHAR" length="8" />
+        <field id="42" type="CHAR" length="15" />
+        <field id="43" type="CHAR" length="40" />
+        <field id="48" type="LLLVAR"/>
+        <field id="49" type="CHAR" length="3" />
+        <field id="90" type="CHAR" length="42" />
+    </package>
+    <package mti="0310">
+        <field id="2" type="LLVAR" />
+        <field id="3" type="CHAR" length="6"/>
+        <field id="4" type="CHAR" length="12" />
+        <field id="7" type="CHAR" length="10" />
+        <field id="11" type="CHAR" length="6" />
+        <field id="12" type="CHAR" length="6" />
+        <field id="13" type="CHAR" length="4" />
+        <field id="15" type="CHAR" length="4" />
+        <field id="22" type="CHAR" length="3"/>
+        <field id="25" type="CHAR" length="2"/>
+        <field id="32" type="LLVAR"/>
+        <field id="33" type="LLVAR"/>
+        <field id="37" type="CHAR" length="12"/>
+        <field id="38" type="CHAR" length="6"/>
+        <field id="39" type="CHAR" length="2"/>
+        <field id="41" type="CHAR" length="8" />
+        <field id="42" type="CHAR" length="15" />
+        <field id="43" type="CHAR" length="40" />
+        <field id="48" type="LLLVAR"/>
+        <field id="49" type="CHAR" length="3" />
+        <field id="90" type="CHAR" length="42" />
+    </package>
+<!-- 积分兑奖撤销冲正-end -->
+<!-- 上海银行积分POS-END--> 
+</simple8583-config>

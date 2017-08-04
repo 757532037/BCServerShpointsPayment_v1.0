@@ -1,0 +1,40 @@
+<ivy-module version="2.0">
+	<info organisation="BC" module="Server" />
+	
+	<dependencies>
+		
+		<dependency org="j2ee" name="jmail" rev="unknown" >
+			<artifact name="mail" type="jar" />
+		</dependency>
+		
+		<dependency org="spring-framework" name="spring" rev="2" >
+			<artifact name="spring-ws" type="jar" />
+		</dependency>
+		<dependency org="spring-framework" name="spring" rev="" >
+			<artifact name="org.springframework.oxm-3.0.5.RELEASE" type="jar" />
+		</dependency>
+		
+		<dependency org="spring-framework" name="spring" rev="2.5.1" >
+			<artifact name="spring" type="jar" />
+		</dependency>
+		<dependency org="spring-framework" name="jakarta-commons" rev="logging" >
+			<artifact name="commons" type="jar" />
+		</dependency>
+		
+		<dependency org="junit" name="junit" rev="4.1"/>
+		<dependency org="jconn" name="jconn" rev="2"/>
+		<dependency org="apache" name="log4j" rev="1.2.13"/>
+		
+		
+		<dependency org="quickfixj" name="quickfixj" rev="1.5.3" >
+			<artifact name="slf4j-api" type="jar" />
+		</dependency>	
+		<dependency org="quickfixj" name="quickfixj" rev="jdk14-1.5.3" >
+			<artifact name="slf4j" type="jar" />
+		</dependency>
+				
+		
+
+	</dependencies>
+</ivy-module>
+

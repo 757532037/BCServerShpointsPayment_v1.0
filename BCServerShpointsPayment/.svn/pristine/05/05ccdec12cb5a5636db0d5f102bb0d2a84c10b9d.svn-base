@@ -1,0 +1,493 @@
+﻿﻿<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+
+<beans default-lazy-init="false" default-dependency-check="none"
+	default-autowire="no">
+
+	<!-- <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"> -->
+	<!-- <property name='locations'> <value>config.properties</value> </property> -->
+	<!-- defaults - you can override this in config.properties or by specifying 
+		them as system properties -->
+	<bean
+		class="org.jasypt.spring.properties.EncryptablePropertyPlaceholderConfigurer">
+		<constructor-arg ref="configurationEncryptor" />
+		<property name="properties">
+			<props>
+				<prop key="db.password">ENC(5vWZlz4RLG5vGqg/G65MdQ==)</prop>
+				<prop key="citicws.password">ENC(ymyarkjg42G7Kgu5qqNyuM0CV/eBqG49)</prop>
+			</props>
+		</property>
+	</bean>
+
+	<!-- Change your.Application to your Application class GYS018 -->
+	<bean id="appController" class="bc.core.server.Main" />
+
+	<!-- MQ的发送与接收类 -->
+	<bean id='application' class='bc.core.server.MsgHandler'>
+		<property name="maxThreads" value="200" />
+		<property name="url" value="failover:(tcp://localhost:61616)" />
+		<property name="topicSendShpoints" value="shpoints.topic.recv.bcuat" />
+		<property name="topicRecvShpoints" value="shpoints.topic.send.bcuat" />
+		
+	</bean>
+	<!-- 校验的service -->
+	<bean id="paymentImp" class="bc.core.server.PaymentServicesImp" >
+		<property name="simpleClient" ref="simpleClient" />
+		<property name="xmlReader" ref="xmlReader" />
+		<property name="bosInterfaceUtil" ref="bosInterfaceUtil" />
+		<property name="BCDB" ref="bc-db" />
+	</bean>
+		<!-- 上海银行权益查看接口 -->
+	<bean id="bosInterfaceUtil" class="bc.core.checkpoints.BosInterfaceUtil" singleton="true" init-method="init">
+<!-- 测试 -->
+<!-- 		<property name="url" value="https://218.106.61.146:20025"></property> -->
+<!-- 生产 -->
+		<property name="url" value="https://222.66.10.179:20025"></property>
+<!-- 		测试 -->
+<!-- 		<property name="trustPath" value="config/trust.jks" /> -->
+<!-- 生产 -->
+		<property name="trustPath" value="config/bqClient.jks" />
+		<property name="trustPsw" value="123456" />
+		<property name="timeOut" value="80000" />
+	</bean>
+	<bean id="shpointsTimeOutJob" class="bc.core.checkpoints.ShpointsTimeOutJob">
+		<property name="frequency" value="3" /><!-- 重试三次 -->
+		<property name="waitTime" value="5" /><!-- 等待5秒 -->
+	</bean>
+	<!-- 上海银行积分兑换接口 -->
+	<bean id="simpleClient" class="com.shpoints.client.SimpleClient">
+<!-- 测试 -->
+<!-- 		<constructor-arg index="0"  value="218.106.61.146"></constructor-arg> -->
+<!-- 生产 -->
+		<constructor-arg index="0"  value="222.66.10.179"></constructor-arg>
+   		<constructor-arg index="1"  value="19945"></constructor-arg>
+   		<constructor-arg index="2"  value="15000"></constructor-arg>
+	</bean>
+	<bean id="xmlReader" class="com.shpoints.factory.XmlReader">
+		<constructor-arg index="0"  value="simple8583.xml"></constructor-arg>
+	</bean>
+	<bean id="configurationEncryptor" class="org.jasypt.encryption.pbe.StandardPBEStringEncryptor">
+		<property name="config" ref="environmentVariablesConfiguration" />
+	</bean>
+	
+	<bean id="environmentVariablesConfiguration"
+		class="org.jasypt.encryption.pbe.config.EnvironmentStringPBEConfig">
+		<property name="algorithm" value="PBEWithMD5AndDES" />
+		<property name="passwordEnvName" value="APP_ENCRYPTION_PASSWORD" />
+	</bean>
+
+	<bean id="datasource" class="org.apache.commons.dbcp.BasicDataSource"
+		destroy-method="close">
+		<property name="driverClassName" value="oracle.jdbc.OracleDriver" />
+<!-- 测试 -->
+<!-- 		<property name="url" value="jdbc:oracle:thin:@192.168.0.161:1521/orcl" /> -->
+<!-- 生产 -->
+        <property name="url" value="jdbc:oracle:thin:@192.168.100.100:1521/bcdb" />
+		
+		<property name="username" value="BCPAY" />
+		<property name="password">
+			<value>${db.password}</value>
+		</property>
+		<property name="testOnBorrow" value="true" />
+		<property name="validationQuery" value="SELECT 1 FROM DUAL" />
+	</bean>
+
+	<bean id="pool" class="org.apache.commons.pool.impl.GenericObjectPool">
+		<property name="minEvictableIdleTimeMillis">
+			<value>300000</value>
+		</property>
+		<property name="timeBetweenEvictionRunsMillis">
+			<value>60000</value>
+		</property>
+	</bean>
+
+	<bean id="dsConnectionFactory" class="org.apache.commons.dbcp.DataSourceConnectionFactory">
+		<constructor-arg>
+			<ref bean="datasource" />
+		</constructor-arg>
+	</bean>
+
+ 
+<bean id="poolableConnectionFactory" class="org.apache.commons.dbcp.PoolableConnectionFactory">
+    <constructor-arg index="0"><ref bean="dsConnectionFactory"/></constructor-arg>
+    <constructor-arg index="1"><ref bean="pool"/></constructor-arg>
+    <constructor-arg index="2"><null/></constructor-arg>
+    <constructor-arg index="3"><null/></constructor-arg>
+    <constructor-arg index="4"><value>false</value></constructor-arg>
+    <constructor-arg index="5"><value>true</value></constructor-arg>
+</bean>
+ 
+
+	<bean id="pooledDS" class="org.apache.commons.dbcp.PoolingDataSource"
+		depends-on="poolableConnectionFactory">
+		<constructor-arg>
+			<ref bean="pool" />
+		</constructor-arg>
+	</bean>
+
+	<bean id="bc-db" class="bc.core.server.BCRecData"
+		init-method="init" singleton="true">
+		<constructor-arg ref="pooledDS" />
+		<property name="tsnBlockSize" value="10" />
+		<property name="getTSNSP">
+			<value type="java.lang.String">
+  			<![CDATA[
+				{ call get_next_seq(?,?) }
+			
+			]]>
+			</value>
+		</property>
+		<property name="selectParaSQL">
+			<value>
+	  			<![CDATA[
+	  			select * from t_info_ddt_product
+				]]>
+			</value>
+		</property>
+		<property name="selectPbcRightSendSql">
+	        <value type="java.lang.String">
+	        <![CDATA[
+	            { call bccore.PKG_BC_CODE_RIGHT.P_BC_RIGHT_SEND(?,?,?,?,?,?,?,?) }
+	        ]]>
+	        </value>
+	    </property>
+		<property name="selectPaymentSuccessSQL">
+			<value>
+	  			<![CDATA[
+	  			select orderID,pan,acttype,producttype,status,authorizecode, authdate, authtime, transamt, transcash, BANKORDERID, batchno, serialno, retCode from citicpayment where  batchNo=? and serialNo=? and custid=? and pan=?
+				]]>
+			</value>
+		</property>
+		<property name="selectPaymentCITISQL">
+			<value>
+	  			<![CDATA[
+	  			select orderID,pan,acttype,producttype,status,authorizecode, authdate, authtime, transamt, transcash, BANKORDERID, batchno, serialno, retCode from citicpayment where  batchNo=? and serialNo=? and custid=?
+				]]>
+			</value>
+		</property>
+		<property name="selectPaymentSuccessByOrderidSQL">
+			<value>
+	            <![CDATA[
+	            	select orderID,pan,acttype,producttype,status,authorizecode, authdate, authtime, transamt, transcash, BANKORDERID, batchno, serialno, retCode from citicpayment where  orderid=?
+	                            and terminalID = ? and storeId = ?
+	            ]]>
+            </value>
+		</property>
+		<property name="selectBcProdSql">
+	        <value type="java.lang.String">
+				<![CDATA[
+					select code, value from bcmis.drct_main where TYPE = 'PRODUCT'
+				]]>
+	         </value>
+        </property>
+		<property name="selectErrCodeSql" >
+			<value type="java.lang.String">
+				<![CDATA[
+	  			select distinct * from bccore.T_SYSPARAM_ERRCODE
+				]]>
+			</value>
+		</property>
+		<property name="insertPaymentSQL" >
+			<value>
+  			<![CDATA[
+			insert INTO citicpayment   (orderID, batchNo, serialNo ,
+						 status ,
+						 merchantID ,
+						 transAmt ,
+						 terminalID ,
+						 posTime ,
+						 posID ,
+						 pan ,
+						 productType ,
+						 productNum ,
+						 updatedTime ,
+						 updatedBy ,
+						 transDate,
+						 transTime,
+						 authorizeCode,
+						 authDate,
+						 authTime,
+						 retCode,
+						 commentRes,
+						 bankOrderID,
+						 custID,
+						 casherID,
+						 storeId,
+						 bankName,
+						 merchantName,productid,acttype,note1,transcash,NOTE4
+						 )  VALUES
+						( ?, ?,?,?,?,?,?,?,?,?,?,?, TO_CHAR(SYSDATE , 'YYYYMMDD HH24:MI:SS'),'TradingEngine', ?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+
+			]]>
+			</value>
+		</property>
+		<property name="updatePaymetStatusSql">
+			<value type="java.lang.String">
+            	<![CDATA[
+         				update citicpayment set status = ? , bankorderid = ?, 
+         	                        retcode = ?, commentres = ?, 
+         	                        updatedtime = TO_CHAR(SYSDATE , 'YYYYMMDD HH24:MI:SS'),
+         	                        customer_pay = ?,
+         	                        bank_price = ?,
+         	                        channel_price = ?,
+         	                        bq_benefit = ?,
+         	                        bq_get = ?,
+         	                        channel_pay = ?,
+         	                        trans_cash = ?,
+         	                        customer_con = ?
+         	                        where orderid = ? and batchno = ? and serialno = ?
+            	]]>
+            </value>
+		</property>
+		<property name="updatecitiStatusSql">
+			<value type="java.lang.String">
+            	<![CDATA[
+         				update citicpayment set status = ? ,
+         	                        updatedtime = TO_CHAR(SYSDATE , 'YYYYMMDD HH24:MI:SS'),
+         	                        where orderid = ? and batchno = ? and serialno = ?
+            	]]>
+            </value>
+		</property>
+<!-- BANK_PRICE	VARCHAR2(20)	Y			银行折算金额 -->
+<!-- CHANNEL_PRICE	VARCHAR2(20)	Y			商户折算金额 -->
+<!-- BQ_BENEFIT	VARCHAR2(20)	Y			伯乔收益 -->
+<!-- BQ_GET	VARCHAR2(20)	Y			伯乔应收金额 -->
+<!-- CHANNEL_PAY	VARCHAR2(20)	Y			应收商户金额 -->
+<!-- TRANS_CASH	VARCHAR2(20)	Y			交易金额 -->
+<!-- CUSTOMER_CON	VARCHAR2(20)	Y			商品原价 -->
+		<property name="selectPayingSql">
+			<value type="java.lang.String">
+            	<![CDATA[
+         				select count(ORDERID) from citicpayment
+        	            where orderid = ? and batchno = ? and serialno = ? and retCode = '10003' and status = '-1'
+            
+            	]]>
+            </value>
+		</property>
+		<property name="insertCancelSQL">
+			<value>
+  			<![CDATA[
+			insert INTO citicpayment   (orderID, batchNo, serialNo ,
+						 status ,
+						 merchantID ,
+						 transAmt ,
+						 terminalID ,
+						 posTime ,
+						 posID ,
+						 pan ,
+						 productType ,
+						 productNum ,
+						 updatedTime ,
+						 updatedBy ,
+						 transDate,
+						 transTime,
+						 authorizeCode,
+						 authDate,
+						 authTime,
+						 retCode,
+						 commentRes,
+						 bankOrderID,
+						 custID,
+						 casherID
+						 )  VALUES
+						( ?, ?,?,?,?,?,?,?,?,?,?,?, TO_CHAR(SYSDATE , 'YYYYMMDD HH24:MI:SS'),'TradingEngine', TO_CHAR(SYSDATE , 'YYYYMMDD'),TO_CHAR(SYSDATE , 'HH24MISS'),?,?,?,?,?,?,?,?)
+
+			]]>
+			</value>
+		</property>
+		<property name="updateCancelStatusSP">
+			<value type="java.lang.String">
+  			<![CDATA[
+				{ call updatePaymentStatus(?,?, ?) }
+			
+			]]>
+			</value>
+		</property>
+		
+		<property name="selectShpointsByOrderid">
+			<value type="java.lang.String">
+  			<![CDATA[
+				select sh.messagetypeidentifier,sh.accountnumber,sh.processingcode,sh.transactionamount
+				,sh.transactiondateandtime,sh.systemtraceauditnumber,sh.localtransactiontime,sh.localtransactiondate
+				,sh.capturedate,sh.entrymode,sh.pointofservice,sh.acquiringinstitute,sh.forwardinginstitute
+				,sh.retrievalreferencenumber,sh.approvalcode,sh.responsecode,sh.terminalidentification,sh.bcterminalidentification
+				,sh.bcnameandlocation,sh.additionaldata,sh.transactioncurrencycode,sh.originaldataelement,sh.cataloguecode
+				,sh.referencenumber,sh.itemcode,sh.quantity,sh.fasttrackindicator,sh.pointsredeemed
+				,sh.fasttrackamount from bccore.shpointspayment sh where sh.orderid = ? 
+			]]>
+			</value>
+		</property>
+		
+		<property name="insertShpoints">
+			<value type="java.lang.String">
+  			<![CDATA[
+				 insert into bccore.shpointspayment(
+				  MESSAGETYPEIDENTIFIER,
+				  ACCOUNTNUMBER,
+				  PROCESSINGCODE,
+				  TRANSACTIONAMOUNT,
+				  TRANSACTIONDATEANDTIME,
+				  SYSTEMTRACEAUDITNUMBER,
+				  LOCALTRANSACTIONTIME,
+				  LOCALTRANSACTIONDATE,
+				  CAPTUREDATE,
+				  ENTRYMODE,
+				  POINTOFSERVICE,
+				  ACQUIRINGINSTITUTE,
+				  FORWARDINGINSTITUTE,
+				  RETRIEVALREFERENCENUMBER,
+				  APPROVALCODE,
+				  RESPONSECODE,
+				  TERMINALIDENTIFICATION,
+				  BCTERMINALIDENTIFICATION,
+				  BCNAMEANDLOCATION,
+				  ADDITIONALDATA,
+				  TRANSACTIONCURRENCYCODE,
+				  ORIGINALDATAELEMENT,
+				  CATALOGUECODE,
+				  REFERENCENUMBER,
+				  ITEMCODE,
+				  QUANTITY,
+				  FASTTRACKINDICATOR,
+				  POINTSREDEEMED,
+				  FASTTRACKAMOUNT,
+				  RESPONSEMSG,
+				  ORDERID) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+			]]>
+			</value>
+		</property>
+		<property name="updateShpointsByOrderid">
+			<value type="java.lang.String">
+  			<![CDATA[
+				   update bccore.SHPOINTSPAYMENT sh set 
+					  MESSAGETYPEIDENTIFIER = ?,
+					  ACCOUNTNUMBER = ?,
+					  PROCESSINGCODE = ?,
+					  TRANSACTIONDATEANDTIME = ?,
+					  SYSTEMTRACEAUDITNUMBER = ?,
+					  LOCALTRANSACTIONTIME = ?,
+					  LOCALTRANSACTIONDATE = ?,
+					  CAPTUREDATE = ?,
+					  ENTRYMODE = ?,
+					  POINTOFSERVICE = ?,
+					  ACQUIRINGINSTITUTE = ?,
+					  FORWARDINGINSTITUTE = ?,
+					  RETRIEVALREFERENCENUMBER = ?,
+					  APPROVALCODE = ?,
+					  RESPONSECODE = ?,
+					  TERMINALIDENTIFICATION = ?,
+					  BCTERMINALIDENTIFICATION = ?,
+					  BCNAMEANDLOCATION = ?,
+					  TRANSACTIONCURRENCYCODE = ?,
+					  ORIGINALDATAELEMENT = ?,
+					  RESPONSEMSG = ?,
+					  ORIGINALMESSAGETYPE = MESSAGETYPEIDENTIFIER,
+					  ORIGINALSYSTEMTRACENUMBE = SYSTEMTRACEAUDITNUMBER,
+					  ORIGINALTRANSACTIONDATE = TRANSACTIONDATEANDTIME,
+					  ORIGINALACQUIREINSTITUTE = ACQUIRINGINSTITUTE,
+					  ORIGINALFORWARDINGINSTITUTE = FORWARDINGINSTITUTE,
+					  NEW7	= TRANSACTIONDATEANDTIME ,
+					  NEW11 = SYSTEMTRACEAUDITNUMBER,	
+					  NEW12 = LOCALTRANSACTIONTIME,	
+					  NWE13 = LOCALTRANSACTIONDATE,	
+					  NEW15 = CAPTUREDATE,	
+					  NEW37 = RETRIEVALREFERENCENUMBER  where orderid = ?
+			]]>
+			</value>
+		</property>
+		<property name="deleteFromTinfoDdtClearAccount">
+			<value type="java.lang.String">
+  			<![CDATA[
+				   delete from bcmis.t_ddt_clear_account tdca where tdca.ca_channel_specid = ? 
+				    and tdca.ca_trade_cardno = ? and tdca.ca_trade_bcno = ?  
+			]]>
+			</value>
+		</property>
+		<property name="updateShpointsStatusByOrderid">
+			<value type="java.lang.String">
+  			<![CDATA[
+				   update bccore.SHPOINTSPAYMENT sh set 
+					  RESPONSEMSG = ?,
+					  where orderid = ?
+			]]>
+			</value>
+		</property>
+		<property name="selectShpointsprorealByItem">
+			<value type="java.lang.String">
+  			<![CDATA[
+				select rea.cataloguecode,rea.itemcode,rea.bcproid,rea.comm,rea.fasttrack,
+				rea.pointsnum,rea.start_date,rea.end_date,rea.fat_trade_num_c,rea.fat_trade_num_b 
+				from bccore.shpoints_bqsh_proreal rea where rea.itemcode = ? 
+			]]>
+			</value>
+		</property>
+		<property name="selectAllShpointsproreal">
+			<value type="java.lang.String">
+  			<![CDATA[
+				select rea.cataloguecode,rea.itemcode,rea.bcproid,rea.comm,rea.fasttrack,
+	        rea.pointsnum,tip.tip_start_date as start_date,tip.tip_end_date as end_date,tim.fat_rate_c as fat_trade_num_c,
+	        tim.fat_rate_b as fat_trade_num_b,
+	        tim.fat_bank_price as bq_benefit,rea.activitday,rea.daypointsnum from bccore.shpoints_bqsh_proreal rea 
+	        ,bcmis.t_info_mode tim ,bcmis.t_info_product tip where tip.tip_mode_id=tim.fat_id and rea.bcproid = tip.tip_product_id
+			]]>
+			</value>
+		</property>
+		<property name="selectAllShpoints210Trade">
+			<value type="java.lang.String">
+  			<![CDATA[	
+				select count(0) from bcpay.citicpayment ct where ct.producttype='10120553' and ct.status = 1
+			]]>
+			</value>
+		</property>
+		<property name="selectTodayShpoints210Trade">
+			<value type="java.lang.String">
+  			<![CDATA[	
+				select count(0) from bcpay.citicpayment ct where ct.producttype='10120553' and ct.status = 1 and ct.batchno=to_char(sysdate,'yyMMdd') 
+			]]>
+			</value>
+		</property>
+		<property name="selectShbkCustInfo">
+			<value type="java.lang.String">
+  			<![CDATA[
+				select count(0) from  bccore.shbk_cust_info sci 
+				where to_date(sci.tradedate,'yyyymmdd') >=TRUNC(SYSDATE, 'MM')       
+				and to_date(sci.tradedate,'yyyymmdd')<=SYSDATE and sci.user_id = ?
+			]]>
+			</value>
+		</property>
+		<property name="insertShbkCustInfo">
+			<value type="java.lang.String">
+  			<![CDATA[
+				insert into bccore.shbk_cust_info(card_bin,card_no,user_id) values(?,?,?)
+			]]>
+			</value>
+		</property>
+		<property name="countCitipaymentByNote1ByBatchno">
+			<value type="java.lang.String">
+  			<![CDATA[
+				select count(0) from bcpay.citicpayment ct where ct.note1=? and  and ct.productid = ? and ct.status = 1 
+				  and ct.acttype='010701' and to_date(ct.transdate,'yyyymmdd')<=SYSDATE
+ 					and  to_date(ct.transdate,'yyyymmdd') >=TRUNC(SYSDATE, 'MM')
+			]]>
+			</value>
+		</property>
+		<property name="sumCitipaymentByNote1ByBatchno">
+			<value type="java.lang.String">
+  			<![CDATA[
+				select sum(ct.transcash) from bcpay.citicpayment ct where ct.note1=?  and ct.productid = ? 
+				 and ct.status = 1 and ct.acttype='010701' and to_date(ct.transdate,'yyyymmdd')<=SYSDATE 
+ 					and to_date(ct.transdate,'yyyymmdd') >=TRUNC(SYSDATE, 'MM')
+			]]>
+			</value>
+		</property>
+		<property name="selectThisPanShbk210TradesInfo">
+			<value type="java.lang.String">
+  			<![CDATA[
+				select count(*) from bcpay.citicpayment ct where ct.batchno=to_char(sysdate,'yymmdd') and 
+				 ct.acttype='010701' and ct.productid='553' and ct.status=1 and ct.note4 = ? 
+			]]>
+			</value>
+		</property>
+	</bean>
+
+</beans>
